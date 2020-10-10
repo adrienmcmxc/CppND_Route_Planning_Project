@@ -99,7 +99,7 @@ std::vector<RouteModel::Node> RoutePlanner::ConstructFinalPath(RouteModel::Node 
     std::vector<RouteModel::Node> path_found;
 
     // TODO: Implement your solution here.
-    while(current_node != nullptr){ //looping until current node is the starting point
+    while(current_node->parent != nullptr){ //looping until the parent of the current node reaches the starting point
         //sum the distance between the current node and its parent
         distance += current_node->parent->distance(*current_node); 
         //adding the current node to the end of the end of the path (ascending order)
@@ -107,6 +107,8 @@ std::vector<RouteModel::Node> RoutePlanner::ConstructFinalPath(RouteModel::Node 
         //updating the current node as a parent of itself 
         current_node = current_node->parent;
     }   
+    path_found.push_back(*current_node); //The last node (start_node) was skipped in the while loop
+                                         //thus it is added to the list.
 
     distance *= m_Model.MetricScale(); // Multiply the distance by the scale of the map to get meters.
     
@@ -127,12 +129,16 @@ std::vector<RouteModel::Node> RoutePlanner::ConstructFinalPath(RouteModel::Node 
 void RoutePlanner::AStarSearch() {
     RouteModel::Node *current_node = nullptr; //Initializing the current node as a null pointer
 
+    start_node->visited = true;
+    open_list.push_back(start_node);
+
     while(open_list.empty() == 0){ //loops until the list of open list is non-empty
-            AddNeighbors(current_node); //Expanding the current node by adding all unvisited neighbors to the open list
             current_node = NextNode(); //Sorting the open list and returning the next node
             if(current_node == end_node){ //Check if the current node is the goal (i.e. end_node)
                 m_Model.path = ConstructFinalPath(current_node); 
             }
+    
+    AddNeighbors(current_node); //Expanding the current node by adding all unvisited neighbors to the open list
     }
 
 }
